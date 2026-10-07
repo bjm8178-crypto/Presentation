@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>This or That: Pick Your Side</title>
+<style>
+:root{
+  --bg:#0b1a2b; --panel:#0e2236; --left:#14385a; --right:#231f4d;
+  --mint:#7df0a8; --ink:#f4f8fc; --mute:#9db2c7; --line:#2b4a6b;
+}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{
+  font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif;
+  background:radial-gradient(1200px 600px at 50% -10%,#173556 0%,var(--bg) 60%);
+  color:var(--ink);display:flex;flex-direction:column;padding:18px 28px 22px;overflow:hidden;
+}
+.top{display:flex;justify-content:space-between;font-size:.8rem;color:var(--mute);margin-bottom:10px}
+#phase{font-weight:700;letter-spacing:.08em;transition:color .3s}
+#phase.go{color:var(--mint);animation:blink 1s infinite}
+@keyframes blink{50%{opacity:.35}}
+
+.q{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 26px;text-align:center;animation:drop .6s cubic-bezier(.2,.9,.3,1.2) both}
+.q small{display:block;color:var(--mint);font-size:.78rem;font-weight:700;margin-bottom:6px;letter-spacing:.1em}
+.q h1{font-size:clamp(1.4rem,3.2vw,2.5rem);line-height:1.2}
+@keyframes drop{from{opacity:0;transform:translateY(-30px)}to{opacity:1;transform:none}}
+
+.stage{flex:1;position:relative;display:grid;grid-template-columns:1fr 1fr;gap:22px;margin:18px 0;min-height:0}
+.card{
+  border-radius:16px;border:2px solid var(--line);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;padding:20px;
+  transition:transform .5s,opacity .5s,filter .5s,box-shadow .5s,border-color .5s;
+}
+.card.l{background:linear-gradient(160deg,#1a4a78,var(--left));animation:fromL .7s .15s both}
+.card.r{background:linear-gradient(160deg,#2f2a66,var(--right));animation:fromR .7s .15s both}
+@keyframes fromL{from{opacity:0;transform:translateX(-80px)}to{opacity:1;transform:none}}
+@keyframes fromR{from{opacity:0;transform:translateX(80px)}to{opacity:1;transform:none}}
+.card:hover{transform:translateY(-4px)}
+.emoji{font-size:clamp(3rem,7vw,5rem);animation:bob 3s ease-in-out infinite}
+.card.r .emoji{animation-delay:-1.5s}
+@keyframes bob{50%{transform:translateY(-10px) rotate(-4deg)}}
+.card h2{font-size:clamp(1.6rem,3.6vw,2.8rem);margin:8px 0 6px}
+.card p{color:var(--mute);font-size:clamp(.85rem,1.4vw,1.1rem)}
+.tag{margin-top:12px;font-size:.8rem;font-weight:700;color:var(--mute);border:1px solid var(--line);padding:3px 12px;border-radius:99px}
+
+.or{
+  position:absolute;left:50%;top:50%;translate:-50% -50%;z-index:2;
+  width:58px;height:58px;border-radius:50%;background:#050d17;border:3px solid var(--line);
+  display:grid;place-items:center;font-weight:800;font-size:.9rem;
+  animation:pulse 2s infinite;
+}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(125,240,168,.5)}70%{box-shadow:0 0 0 18px rgba(125,240,168,0)}100%{box-shadow:0 0 0 0 rgba(125,240,168,0)}}
+
+.card.win{border-color:var(--mint);box-shadow:0 0 0 4px rgba(125,240,168,.25),0 0 50px rgba(125,240,168,.45);transform:scale(1.04);animation:none}
+.card.win .tag{background:var(--mint);color:#06281a;border-color:var(--mint)}
+.card.win .emoji{animation:pop .7s}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.5) rotate(10deg)}100%{transform:scale(1)}}
+.card.lose{opacity:.35;filter:grayscale(.8);transform:scale(.95);animation:none}
+
+.clue{
+  max-width:760px;margin:0 auto 12px;text-align:center;font-size:1.05rem;color:var(--ink);
+  background:rgba(125,240,168,.1);border:1px solid rgba(125,240,168,.4);border-radius:12px;
+  padding:0 18px;max-height:0;opacity:0;overflow:hidden;transition:max-height .5s,opacity .5s,padding .5s;
+}
+.clue.show{max-height:120px;opacity:1;padding:12px 18px}
+
+.ctrl{display:grid;gap:8px;width:min(520px,100%);margin:0 auto}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+button{
+  font:inherit;font-weight:700;font-size:.85rem;color:var(--mute);background:var(--panel);
+  border:1px solid var(--line);border-radius:10px;padding:11px;cursor:pointer;transition:transform .15s,background .2s,color .2s;
+}
+button:hover:not(:disabled){transform:translateY(-2px);color:var(--ink);background:#173250}
+button:focus-visible{outline:3px solid var(--mint);outline-offset:2px}
+button:disabled{opacity:.35;cursor:not-allowed}
+#reveal{background:var(--mint);color:#06281a;border-color:var(--mint);font-size:1rem}
+#reveal:hover:not(:disabled){background:#a2f7c3;color:#06281a}
+
+.dots{display:flex;justify-content:center;gap:8px;margin-bottom:8px}
+.dots i{width:28px;height:5px;border-radius:9px;background:var(--line);transition:background .4s,width .4s}
+.dots i.on{background:var(--mint);width:44px}
+
+@media (max-width:640px){
+  body{padding:12px;overflow:auto}
+  .stage{grid-template-columns:1fr;gap:14px}
+  .or{width:44px;height:44px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+  <div class="top"><span id="round">Round 1 of 4</span><span id="phase">READ</span></div>
+  <div class="dots" id="dots"></div>
+  <div class="q"><small>THIS OR THAT?</small><h1 id="question"></h1></div>
+
+  <div class="stage" id="stage">
+    <div class="card l" id="cl"><div class="emoji" id="el"></div><h2 id="tl"></h2><p id="dl"></p><span class="tag">THIS &middot; LEFT SIDE</span></div>
+    <div class="or">OR</div>
+    <div class="card r" id="cr"><div class="emoji" id="er"></div><h2 id="tr"></h2><p id="dr"></p><span class="tag">THAT &middot; RIGHT SIDE</span></div>
+  </div>
+
+  <div class="clue" id="clue"></div>
+
+  <div class="ctrl">
+    <button id="reveal">&#10003; Reveal</button>
+    <div class="row">
+      <button id="prev">&larr; Previous</button>
+      <button id="next">Next &rarr;</button>
+    </div>
+    <button id="choose">Say &ldquo;CHOOSE&rdquo;</button>
+    <button id="reset">&#8635; Reset Game</button>
+  </div>
+
+<script>
+const rounds=[
+ {q:"Which one can mainly understand and generate human language?",
+  l:["🧠","LLM","A language-focused AI model"],r:["🎨","IMAGE MODEL","An AI model that creates images"],
+  a:"l",clue:"The answer is THIS: LLM. An LLM works with language and produces text."},
+ {q:"Which one can create a picture from the prompt \u201CA dog wearing sunglasses at the beach\u201D?",
+  l:["🖼️","IMAGE MODEL","Produces images"],r:["🎧","AUDIO / SPEECH MODEL","Produces sounds and speech"],
+  a:"l",clue:"The answer is THIS: Image Model. The key clue is the kind of output: the prompt asks for a picture."},
+ {q:"Which one can produce output as text, image, video, or audio?",
+  l:["💬","LLM","Mainly produces text"],r:["🌐","MULTIMODAL MODEL","Can work with many kinds of output"],
+  a:"r",clue:"The answer is THAT: Multimodal Model. It can produce more than one kind of output."},
+ {q:"Which one can check your calendar to answer \u201CWhen is my free time?\u201D",
+  l:["⚙️","AI MODEL ONLY","Takes an input and gives an output"],r:["🤖","AI AGENT","Has a goal, memory, and tools"],
+  a:"r",clue:"The answer is THAT: AI Agent. An AI model alone cannot know your schedule unless it is connected to a tool, like your calendar."}
+];
+let i=0;
+const $=id=>document.getElementById(id);
+const dots=$("dots");rounds.forEach(()=>dots.appendChild(document.createElement("i")));
+
+function setPhase(t,go){const p=$("phase");p.textContent=t;p.classList.toggle("go",!!go)}
+
+function load(){
+  const r=rounds[i];
+  $("round").textContent=`Round ${i+1} of ${rounds.length}`;
+  $("question").textContent=r.q;
+  [$("el").textContent,$("tl").textContent,$("dl").textContent]=r.l;
+  [$("er").textContent,$("tr").textContent,$("dr").textContent]=r.r;
+  ["cl","cr"].forEach(id=>{
+    const c=$(id);c.classList.remove("win","lose");
+    c.style.animation="none";c.offsetHeight;c.style.animation="";
+  });
+  const q=document.querySelector(".q");q.style.animation="none";q.offsetHeight;q.style.animation="";
+  $("clue").classList.remove("show");
+  setPhase("READ",false);
+  $("reveal").disabled=false;
+  $("prev").disabled=i===0;
+  $("next").disabled=i===rounds.length-1;
+  [...dots.children].forEach((d,k)=>d.classList.toggle("on",k<=i));
+}
+
+function reveal(){
+  const r=rounds[i];
+  const win=r.a==="l"?"cl":"cr", lose=r.a==="l"?"cr":"cl";
+  $(win).classList.add("win");$(lose).classList.add("lose");
+  $("clue").textContent=r.clue;$("clue").classList.add("show");
+  setPhase("REVEALED",false);
+}
+function go(n){if(n>=0&&n<rounds.length){i=n;load()}}
+
+$("reveal").onclick=reveal;
+$("next").onclick=()=>go(i+1);
+$("prev").onclick=()=>go(i-1);
+$("choose").onclick=()=>setPhase("CHOOSE",true);
+$("reset").onclick=()=>go(0)||(i=0,load());
+document.addEventListener("keydown",e=>{
+  if(e.key==="ArrowRight")go(i+1);
+  else if(e.key==="ArrowLeft")go(i-1);
+  else if(e.key==="Enter"||e.key===" "){e.preventDefault();reveal()}
+  else if(e.key.toLowerCase()==="c")setPhase("CHOOSE",true);
+});
+load();
+</script>
+<a href="index.html#motivation" style="position:fixed;top:12px;right:12px;z-index:60;text-decoration:none;font:700 14px 'Trebuchet MS','Segoe UI',sans-serif;padding:10px 16px;border-radius:12px;background:#7df0a8;color:#06281a;border:1px solid #7df0a8">Back to main slides &rarr;</a>
+</body>
+</html>

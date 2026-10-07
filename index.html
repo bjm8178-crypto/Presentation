@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Understanding AI, AI Models, and AI Agents</title>
+<style>
+:root{--bg:#0b1a2b;--panel:#0e2236;--line:#2b4a6b;--ink:#f4f8fc;--mute:#9db2c7;--hi:#7df0a8;--pop:#ff8f5a;--card:#0e2236}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif;color:var(--ink);background:radial-gradient(1200px 600px at 50% -10%,#173556 0%,var(--bg) 60%) fixed}
+body::before{content:"";position:fixed;inset:0;background-image:radial-gradient(#2b4a6b55 1.2px,transparent 1.2px);background-size:28px 28px;pointer-events:none}
+.dots span{position:fixed;border-radius:50%;background:var(--pop);opacity:.15;animation:float linear infinite}
+@keyframes float{from{transform:translateY(105vh)}to{transform:translateY(-15vh)}}
+.slide{position:absolute;inset:0 0 70px 0;display:flex;flex-direction:column;justify-content:center;padding:4vh 8vw;opacity:0;visibility:hidden;transform:translateX(60px);transition:opacity .5s,transform .5s,visibility .5s;overflow-y:auto}
+.slide.active{opacity:1;visibility:visible;transform:none}
+.slide.prev{transform:translateX(-60px)}
+h1{font-weight:800;font-size:clamp(2.2rem,6vw,4.6rem);line-height:1.1}
+h2{font-weight:800;font-size:clamp(1.8rem,4vw,3rem);margin-bottom:3vh;color:var(--hi)}
+p,li{font-size:clamp(1.1rem,2.2vw,1.7rem);line-height:1.5}
+.sub{color:var(--mute);margin-top:2vh}
+.item{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--pop);border-radius:14px;padding:1.6vh 2vw;margin-bottom:2vh;opacity:0;transform:translateY(20px)}
+.active .item{animation:rise .6s forwards}
+.active .item:nth-child(2){animation-delay:.3s}.active .item:nth-child(3){animation-delay:.6s}
+.active .item:nth-child(4){animation-delay:.9s}.active .item:nth-child(5){animation-delay:1.2s}
+.active .item:nth-child(6){animation-delay:1.5s}.active .item:nth-child(7){animation-delay:1.8s}
+@keyframes rise{to{opacity:1;transform:none}}
+b.k{color:var(--hi)}
+.center{align-items:center;text-align:center}
+.big{width:min(46vh,60vw);height:min(46vh,60vw);border-radius:50%;border:3px solid var(--line);cursor:pointer;font:800 clamp(4rem,14vw,9rem) "Trebuchet MS",sans-serif;color:#06281a;background:var(--hi);text-decoration:none;display:flex;align-items:center;justify-content:center;animation:pulse 2s infinite;margin-top:2vh;transition:transform .2s}
+.big:hover{transform:scale(1.06);animation:none;box-shadow:0 0 60px rgba(125,240,168,.5)}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(125,240,168,.5)}100%{box-shadow:0 0 0 50px rgba(125,240,168,0)}}
+.title-slide h1 span{display:inline-block;animation:pop .7s backwards}
+@keyframes pop{from{opacity:0;transform:scale(.4) rotate(-8deg)}}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:2vh 2vw;margin-top:2vh}
+.opt{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:1.5vh 1.5vw;font-size:clamp(1rem,2vw,1.5rem)}
+.opt.right.show{background:var(--hi);color:#06281a;border-color:var(--hi);font-weight:700}
+.rev{margin-top:3vh;align-self:flex-start;background:var(--panel);border:1px solid var(--line);color:var(--mute);border-radius:12px;font-weight:700;padding:.6em 1.4em;font-size:1rem;cursor:pointer}
+.rev:hover{border-color:var(--hi);color:var(--hi)}
+.lead{margin-bottom:2vh}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:1.4vh 1.6vw}
+.grid .item{margin:0;font-size:clamp(1.1rem,2.1vw,1.55rem);line-height:1.35}
+.grid .item b{display:block;font-size:1.1em}
+.grid .item:last-child{grid-column:1/-1}
+.warn{margin-top:2.4vh;padding:1.4vh 2vw;border:2px solid var(--pop);border-radius:14px;color:var(--pop);font-weight:700;font-size:clamp(1.1rem,2.1vw,1.55rem);text-align:center}
+.q{font-size:clamp(1.3rem,2.8vw,2.2rem);line-height:1.4}
+nav{position:fixed;left:0;right:0;bottom:0;height:70px;display:flex;align-items:center;justify-content:center;gap:24px;background:rgba(5,13,23,.7);border-top:1px solid var(--line)}
+nav button{width:54px;height:54px;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--hi);font-size:1.6rem;cursor:pointer;transition:.2s}
+nav button:hover{background:var(--hi);color:#06281a;border-color:var(--hi)}
+nav button:focus-visible,.rev:focus-visible,.big:focus-visible{outline:3px solid var(--hi);outline-offset:2px}
+#count{min-width:70px;text-align:center;color:var(--mute)}
+#bar{position:fixed;top:0;left:0;height:5px;background:var(--hi);transition:width .4s}
+@media(max-width:700px){.opts,.grid{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.item{opacity:1;transform:none}}
+
+/* ---- larger type and boxes ---- */
+.slide{padding:3vh 5vw}
+h1{font-size:clamp(3.2rem,min(9vw,15vh),8rem)}
+h2{font-size:clamp(2.6rem,min(5.4vw,8vh),4.4rem);margin-bottom:2.4vh}
+p,li{font-size:clamp(1.6rem,min(3vw,4.4vh),2.8rem)}
+.item{padding:2.4vh 2.4vw;border-radius:18px;margin-bottom:2.4vh;font-size:clamp(1.5rem,min(3vw,4.2vh),2.6rem);line-height:1.35}
+#objective .item{font-size:clamp(1.3rem,min(2.7vw,3.5vh),2.3rem)}
+#reflection .item{font-size:clamp(1.5rem,min(3vw,4vh),2.6rem)}
+#reflection .item.q{font-size:clamp(2rem,min(4vw,5.4vh),3.6rem)}
+.q{font-size:clamp(1.9rem,min(3.9vw,5.4vh),3.4rem)}
+.opts{gap:2.2vh 2vw;margin-top:3vh}
+.opt{padding:2.2vh 2vw;border-radius:16px;font-size:clamp(1.4rem,min(2.8vw,3.9vh),2.4rem);line-height:1.3}
+.rev{font-size:clamp(1.2rem,2.2vw,1.8rem);padding:.7em 1.8em}
+.lead{font-size:clamp(1.4rem,min(2.7vw,3.8vh),2.4rem);line-height:1.35}
+.grid .item{padding:1.8vh 2vw;margin:0;font-size:clamp(1.2rem,min(2.5vw,3.3vh),2.2rem)}
+.warn{padding:1.8vh 2vw;font-size:clamp(1.3rem,min(2.6vw,3.5vh),2.3rem)}
+#count{font-size:1.1rem}
+</style>
+</head>
+<body>
+<div id="bar"></div>
+
+<section class="slide center title-slide" id="title">
+  <h1 id="t">Understanding AI, AI Models, and AI Agents</h1>
+</section>
+
+<section class="slide" id="objective">
+  <h2>Objectives</h2>
+  <p class="sub" style="margin:0 0 2vh">The students should be able to:</p>
+  <div class="item"><b class="k">A.</b> Define an AI model and a Large Language Model (LLM), identify the types of AI models, and explain how an AI agent differs from a regular AI model;</div>
+  <div class="item"><b class="k">B.</b> Appreciate the importance of using AI responsibly and how organizations use AI agents to serve people better; and</div>
+  <div class="item"><b class="k">C.</b> Design a simple AI agent for a school, home, or small-business task using its parts: goal/instructions, AI model, memory, tools, and observing the result and repeating if needed.</div>
+</section>
+
+<section class="slide center" id="review">
+  <p class="sub">Review of the previous lesson</p>
+  <h1 style="margin-top:2vh">"What is an AI?"</h1>
+</section>
+
+<section class="slide center" id="motivation">
+  <h2>Motivation</h2>
+  <p class="sub">Click the button to begin</p>
+  <a class="big" href="Motivation.html" aria-label="Open Motivation">AI</a>
+</section>
+
+<section class="slide center" id="discussion">
+  <h2>Discussion</h2>
+  <p class="sub">Click the button to begin</p>
+  <a class="big" href="Discussion.html" aria-label="Open Discussion">AI</a>
+</section>
+
+<section class="slide" id="reflection">
+  <h2>Reflection</h2>
+  <div class="item">Please take out a <b class="k">1/2 sheet of yellow paper</b>. Work individually and write your reflection on this question:</div>
+  <div class="item q"><b class="k">What is the difference between an AI model and an AI agent, and why should we be careful when giving an AI agent tools?</b></div>
+  <div class="item">You may write your answer in two to three sentences. Write your name on your paper and pass it forward when you are done.</div>
+</section>
+
+<section class="slide center" id="quiz">
+  <h2>Quiz</h2>
+  <p>The learners will answer a <b class="k">10-item quiz</b> individually.</p>
+  <p class="sub">Choose the letter of the best answer.</p>
+</section>
+
+<!-- quiz slides are generated below -->
+
+<section class="slide" id="assignment">
+  <h2>Assignment</h2>
+  <p class="lead">On one-half crosswise sheet of paper, design <b class="k">one simple AI agent</b> for a school, home, or small-business task.</p>
+  <div class="grid">
+    <div class="item"><b class="k">Agent Name and Goal</b>What problem will it help solve?</div>
+    <div class="item"><b class="k">Goal / Instructions</b>One rule it always follows</div>
+    <div class="item"><b class="k">AI Model</b>LLM, image, video, audio/speech, or multimodal? Why?</div>
+    <div class="item"><b class="k">Tools</b>At least two apps or services</div>
+    <div class="item"><b class="k">Memory</b>What should it remember?</div>
+    <div class="item"><b class="k">Observe and Repeat</b>How it checks the result and tries again</div>
+    <div class="item"><b class="k">Responsible-Use Rule</b>One limit or permission that protects the user</div>
+  </div>
+  <p class="warn">Do not build the actual program yet. Design the idea clearly using what we learned today.</p>
+</section>
+
+<nav>
+  <button id="pv" aria-label="Previous">&#10094;</button>
+  <span id="count"></span>
+  <button id="nx" aria-label="Next">&#10095;</button>
+</nav>
+
+<script>
+// Quiz data: [question, [A,B,C,D], correct index]
+const Q=[
+["What does AI stand for?",["Automatic Information","Artificial Intelligence","Advanced Internet","Applied Instruction"],1],
+["An AI model is best described as:",["A computer program trained on data to produce an output","A type of computer screen","A website that stores files","A person who studies data"],0],
+["What does LLM stand for?",["Linked Learning Machine","Logical Language Method","Large Language Model","Large Learning Memory"],2],
+["Which statement is correct?",["All AI models are LLMs","All LLMs are AI models, but not all AI models are LLMs","LLMs and video models are the same","LLMs are not AI models"],1],
+["Which type of AI model creates, edits, and makes content such as ads, clips, and animations?",["LLM","Audio/speech model","Video model","Text editor"],2],
+["You send the prompt \"A dog wearing sunglasses at the beach.\" Which type of AI model gives you an image as output?",["Image model","LLM","Audio/speech model","Calendar tool"],0],
+["Which type of AI model can produce sounds, speech, or even a complete song?",["Video model","Image model","LLM","Audio/speech model"],3],
+["Which type of AI model can produce output as text, image, video, or audio?",["LLM","Multimodal model","Image model","Audio/speech model"],1],
+["Which part of an AI agent allows it to access your calendar?",["Tools","Output","Screen","Keyboard"],0],
+["Which best describes how an AI agent works?",["It only gives an output from an input, with nothing else","It follows a goal or instructions, uses memory and tools, observes the result, repeats if needed, and then gives the output","It only creates images","It cannot use any tools"],1]
+];
+const L="ABCD", assign=document.getElementById("assignment");
+Q.forEach((q,i)=>{
+  const s=document.createElement("section");
+  s.className="slide";s.id="q"+(i+1);
+  s.innerHTML=`<h2>Quiz ${i+1} of 10</h2><p class="q">${i+1}. ${q[0]}</p><div class="opts">`+
+    q[1].map((o,j)=>`<div class="opt ${j==q[2]?"right":""}"><b class="k">${L[j]}.</b> ${o}</div>`).join("")+
+    `</div><button class="rev">Show answer</button>`;
+  s.querySelector(".rev").onclick=e=>{s.querySelector(".right").classList.toggle("show");e.target.textContent=s.querySelector(".right.show")?"Hide answer":"Show answer"};
+  assign.before(s);
+});
+
+// Title letters animation
+const t=document.getElementById("t");
+t.innerHTML=t.textContent.split(" ").map((w,i)=>`<span style="animation-delay:${i*.15}s">${w}</span>`).join(" ");
+
+// Navigation
+const S=[...document.querySelectorAll(".slide")];let cur=0;
+function go(n,push=true){
+  n=Math.max(0,Math.min(S.length-1,n));
+  S.forEach((s,i)=>{s.classList.toggle("active",i==n);s.classList.toggle("prev",i<n)});
+  cur=n;
+  document.getElementById("count").textContent=(n+1)+" / "+S.length;
+  document.getElementById("bar").style.width=((n+1)/S.length*100)+"%";
+  if(push)history.replaceState(null,"","#"+S[n].id);
+}
+document.getElementById("nx").onclick=()=>go(cur+1);
+document.getElementById("pv").onclick=()=>go(cur-1);
+document.addEventListener("keydown",e=>{
+  if(["ArrowRight","PageDown"," "].includes(e.key)){e.preventDefault();go(cur+1)}
+  if(["ArrowLeft","PageUp"].includes(e.key))go(cur-1)});
+// Open the slide named in the URL (so "back" buttons can return to the right slide)
+const h=S.findIndex(s=>s.id==location.hash.slice(1));
+go(h>=0?h:0);
+</script>
+</body>
+</html>
